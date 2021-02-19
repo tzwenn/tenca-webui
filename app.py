@@ -18,8 +18,6 @@ except ImportError:
 
 ################################################################################
 
-logger = logging.Logger(__name__)
-
 oidc = OpenIDConnect(app)
 conn = tenca.connection.Connection()
 
@@ -41,7 +39,7 @@ def lookup_list_and_email_by_action(list_id, token):
 def index():
 	return 'This is the main page!<br />Please <a href="/dashboard">log in</a>.'
 
-@app.route('/confirm/<list_id>/<token>')
+@app.route('/confirm/<list_id>/<token>/')
 def confirm_action(list_id, token):
 	mailing_list, email = lookup_list_and_email_by_action(escape(list_id), escape(token))
 	
@@ -56,11 +54,11 @@ def confirm_action(list_id, token):
 	else:
 		return "ok. thx. bye."
 
-@app.route('/report/<list_id>/<token>')
+@app.route('/report/<list_id>/<token>/')
 def report_action(list_id, token):
 	mailing_list, email = lookup_list_and_email_by_action(escape(list_id), escape(token))
 	
-	logger.warn('Report received for list "{}" and token "{}" (address "{}")'.format(
+	app.logger.warn('Report received for list "{}" and token "{}" (address "{}")'.format(
 		escape(list_id), escape(token), email
 	))
 	try:
@@ -70,16 +68,16 @@ def report_action(list_id, token):
 
 	return 'Your report has been logged. Thank you.'
 
-@app.route('/manage/<list_id>')
+@app.route('/manage/<list_id>/')
 @oidc.require_login
 def manage_list(list_id):
     return 'This is the admin view for the owners of "%s"!' % escape(list_id)
 
-@app.route('/dashboard')
+@app.route('/dashboard/')
 @oidc.require_login
 def user_dashboard():
     return 'Here comes the lists "%s" is owner or member of.' % oidc.user_getfield('email')
 
-@app.route('/<hashid>')
+@app.route('/<hashid>/')
 def subscribe_list(hashid):
 	return 'Displaying (un)-subscription form of "%s"' % escape(hashid)
