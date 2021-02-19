@@ -1,18 +1,27 @@
 import logging
 
-from markupsafe import escape
 from flask import Flask
+from flask_oidc import OpenIDConnect
+from markupsafe import escape
 
 import tenca.connection
 import tenca.settings
 import tenca.exceptions
 
-
 app = Flask(__name__)
+
+try:
+	import config_local
+	app.config.update(config_local.config)
+except ImportError:
+	pass
+
+################################################################################
+
 logger = logging.Logger(__name__)
 
+oidc = OpenIDConnect(app)
 conn = tenca.connection.Connection()
-
 
 ################################################################################
 
@@ -26,13 +35,11 @@ def lookup_list_and_email_by_action(list_id, token):
 		email = None
 	return mailing_list, email
 
-
 ################################################################################
-
 
 @app.route('/')
 def index():
-    return 'This is the main page! Here you can only log-in.'
+	return 'This is the main page!<br />Please <a href="/dashboard">log in</a>.'
 
 @app.route('/confirm/<list_id>/<token>')
 def confirm_action(list_id, token):
@@ -64,12 +71,14 @@ def report_action(list_id, token):
 	return 'Your report has been logged. Thank you.'
 
 @app.route('/manage/<list_id>')
+@oidc.require_login
 def manage_list(list_id):
-    return 'This is the admin view for the owners of "%s" (requires login)!' % escape(list_id)
+    return 'This is the admin view for the owners of "%s"!' % escape(list_id)
 
-@app.route('/dashboard/<username>')
-def user_dashboard(username):
-    return 'This shows the lists "%s" is owner or member of (requires login)!' % escape(username)
+@app.route('/dashboard')
+@oidc.require_login
+def user_dashboard():
+    return 'Here comes the lists "%s" is owner or member of.' % oidc.user_getfield('email')
 
 @app.route('/<hashid>')
 def subscribe_list(hashid):
