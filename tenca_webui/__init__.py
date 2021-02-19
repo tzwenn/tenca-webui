@@ -46,7 +46,7 @@ def create_app(test_config=None):
 
 	@app.route('/')
 	def index():
-		return 'This is the main page!<br />Please <a href="/dashboard">log in</a>.'
+		return 'This is the main page!<br />Please <a href="/dashboard">log in</a> to create lists.'
 
 	@app.route('/confirm/<list_id>/<token>/')
 	def confirm_action(list_id, token):
@@ -85,10 +85,32 @@ def create_app(test_config=None):
 	@app.route('/dashboard/')
 	@oidc.require_login
 	def user_dashboard():
-		return 'Here comes the lists "%s" is owner or member of.' % oidc.user_getfield('email')
+		email = oidc.user_getfield('email')
+		member_of = conn.find_lists(email, role='member')
+		owner_of = conn.find_lists(email, role='owner')
+
+		def format_enumeration(lists):
+			return "\n".join('<li><a href="/%s">%s</a></li>' % (list.hashid, list.fqdn_listname) for list in lists)
+
+		return "\n".join('<p>{}</p>'.format(par) for par in (
+			'Hi {},',
+			'you are owner of:',
+			'<ul>{}</ul>',
+			'and member of:',
+			'<ul>{}</ul>',
+		)).format(
+			email,
+			format_enumeration(owner_of),
+			format_enumeration(member_of),
+		)
 
 	@app.route('/<hashid>/')
 	def subscribe_list(hashid):
 		return 'Displaying (un-)subscription form of "%s"' % escape(hashid)
+
+	@app.route('/<hashid>/<legacy_admin_token>/')
+	@oidc.require_login
+	def legacy_manage_list(hashid, legacy_admin_token):
+		return 'Forwarding to the management form of "%s", if "%s" is the correct token.' % (escape(hashid), escape(legacy_admin_token))
 
 	return app
