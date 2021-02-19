@@ -1,11 +1,9 @@
 # Python
 *.pyc
+__pycache__/
 
 # Sensitive Data
-oidc_client_secrets.json
+instance/
 
 # Test & Development
 venv/
-tenca
-settings_local.py
-config_local.py
