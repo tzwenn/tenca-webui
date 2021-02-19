@@ -1,6 +1,6 @@
 import os
 
-from flask import Flask
+from flask import Flask, abort
 from flask_oidc import OpenIDConnect
 from markupsafe import escape
 
@@ -80,7 +80,11 @@ def create_app(test_config=None):
 	@app.route('/manage/<list_id>/')
 	@oidc.require_login
 	def manage_list(list_id):
-		return 'This is the admin view for the owners of "%s"!' % escape(list_id)
+		mailing_list = conn.get_list(escape(list_id))
+		if not mailing_list.is_owner(oidc.user_getfield('email')):
+			return 'Nice try, but you are no owner of "%s".' % mailing_list.fqdn_listname
+
+		return 'This is the admin view for the owners of "%s"!' % mailing_list.fqdn_listname
 
 	@app.route('/dashboard/')
 	@oidc.require_login
@@ -106,11 +110,17 @@ def create_app(test_config=None):
 
 	@app.route('/<hashid>/')
 	def subscribe_list(hashid):
-		return 'Displaying (un-)subscription form of "%s"' % escape(hashid)
+		manage_list = conn.get_list_by_hashid(escape(hashid))
+		if manage_list is None:
+			abort(404)
+		return 'Displaying (un-)subscription form of "%s"' % manage_list.fqdn_listname
 
 	@app.route('/<hashid>/<legacy_admin_token>/')
 	@oidc.require_login
 	def legacy_manage_list(hashid, legacy_admin_token):
-		return 'Forwarding to the management form of "%s", if "%s" is the correct token.' % (escape(hashid), escape(legacy_admin_token))
+		manage_list = conn.get_list_by_hashid(escape(hashid))
+		if manage_list is None:
+			abort(404)
+		return 'Forwarding to the management form of "%s", if "%s" is the correct token.' % ( manage_list.fqdn_listname, escape(legacy_admin_token))
 
 	return app
