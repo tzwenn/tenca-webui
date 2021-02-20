@@ -1,3 +1,4 @@
+import urllib.error
 import os
 
 from flask import Flask, abort
@@ -80,11 +81,16 @@ def create_app(test_config=None):
 	@app.route('/manage/<list_id>/')
 	@oidc.require_login
 	def manage_list(list_id):
-		mailing_list = conn.get_list(escape(list_id))
+		try:
+			mailing_list = conn.get_list(escape(list_id))
+		except urllib.error.HTTPError as e:
+			tenca.exceptions.map_http_404(e)
+			return 'No such mailing list'
 		if not mailing_list.is_owner(oidc.user_getfield('email')):
 			return 'Nice try, but you are no owner of "%s".' % mailing_list.fqdn_listname
 
-		return 'This is the admin view for the owners of "%s"!' % mailing_list.fqdn_listname
+		return ('<p>This is the admin view for the owners of "%s"!</p>'
+			'<p>Share <a href="/%s">this link</a> to invite people.</p>') % (mailing_list.fqdn_listname, mailing_list.hashid)
 
 	@app.route('/dashboard/')
 	@oidc.require_login
@@ -93,8 +99,8 @@ def create_app(test_config=None):
 		member_of = conn.find_lists(email, role='member')
 		owner_of = conn.find_lists(email, role='owner')
 
-		def format_enumeration(lists):
-			return "\n".join('<li><a href="/%s">%s</a></li>' % (list.hashid, list.fqdn_listname) for list in lists)
+		def format_enumeration(lists, func):
+			return "\n".join('<li><a href="/%s">%s</a></li>' % (func(list), list.fqdn_listname) for list in lists)
 
 		return "\n".join('<p>{}</p>'.format(par) for par in (
 			'Hi {},',
@@ -102,10 +108,11 @@ def create_app(test_config=None):
 			'<ul>{}</ul>',
 			'and member of:',
 			'<ul>{}</ul>',
+			'(and here comes a form to add a new list)',
 		)).format(
 			email,
-			format_enumeration(owner_of),
-			format_enumeration(member_of),
+			format_enumeration(owner_of, func=lambda l: 'manage/' + l.list_id),
+			format_enumeration(member_of, func=lambda l: l.hashid),
 		)
 
 	@app.route('/<hashid>/')
