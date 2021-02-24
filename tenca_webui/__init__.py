@@ -28,8 +28,20 @@ def create_app(test_config=None):
 
 	################################################################################
 
+	from . import db
+	db.init_db(app)
+
 	oidc = OpenIDConnect(app)
-	conn = tenca.connection.Connection()
+	conn = tenca.connection.Connection(db.SQLHashStorage)
+
+	import urllib.error
+	try:
+		conn.client.delete_list(conn.fqdn_ize('sqllist'))
+	except urllib.error.HTTPError:
+		pass
+	
+	l = conn.add_list('sqllist', 'mail@svenkoehler.de')
+	l.add_member('person2@svenkoehler.de')
 
 	################################################################################
 
