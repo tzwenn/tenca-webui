@@ -81,16 +81,14 @@ def create_app(test_config=None):
 	@app.route('/manage/<list_id>/')
 	@oidc.require_login
 	def manage_list(list_id):
-		try:
-			mailing_list = conn.get_list(escape(list_id))
-		except urllib.error.HTTPError as e:
-			tenca.exceptions.map_http_404(e)
+		mailing_list = conn.get_list(escape(list_id))
+		if mailing_list is None:
 			return 'No such mailing list'
 		if not mailing_list.is_owner(oidc.user_getfield('email')):
 			return 'Nice try, but you are no owner of "%s".' % mailing_list.fqdn_listname
 
 		return ('<p>This is the admin view for the owners of "%s"!</p>'
-			'<p>Share <a href="/%s">this link</a> to invite people.</p>') % (mailing_list.fqdn_listname, mailing_list.hashid)
+			'<p>Share <a href="/%s">this link</a> to invite people.</p>') % (mailing_list.fqdn_listname, mailing_list.hash_id)
 
 	@app.route('/dashboard/')
 	@oidc.require_login
@@ -112,20 +110,20 @@ def create_app(test_config=None):
 		)).format(
 			email,
 			format_enumeration(owner_of, func=lambda l: 'manage/' + l.list_id),
-			format_enumeration(member_of, func=lambda l: l.hashid),
+			format_enumeration(member_of, func=lambda l: l.hash_id),
 		)
 
-	@app.route('/<hashid>/')
-	def subscribe_list(hashid):
-		manage_list = conn.get_list_by_hashid(escape(hashid))
+	@app.route('/<hash_id>/')
+	def subscribe_list(hash_id):
+		manage_list = conn.get_list_by_hash_id(escape(hash_id))
 		if manage_list is None:
 			abort(404)
 		return 'Displaying (un-)subscription form of "%s"' % manage_list.fqdn_listname
 
-	@app.route('/<hashid>/<legacy_admin_token>/')
+	@app.route('/<hash_id>/<legacy_admin_token>/')
 	@oidc.require_login
-	def legacy_manage_list(hashid, legacy_admin_token):
-		manage_list = conn.get_list_by_hashid(escape(hashid))
+	def legacy_manage_list(hash_id, legacy_admin_token):
+		manage_list = conn.get_list_by_hash_id(escape(hash_id))
 		if manage_list is None:
 			abort(404)
 		return 'Forwarding to the management form of "%s", if "%s" is the correct token.' % ( manage_list.fqdn_listname, escape(legacy_admin_token))
