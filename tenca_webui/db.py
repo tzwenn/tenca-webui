@@ -22,11 +22,14 @@ class HashEntry(db.Model):
 
 class SQLHashStorage(HashStorage):
 
+	def _entry_for(self, hash_id):
+		return HashEntry.query.get(hash_id)
+
 	def __contains__(self, hash_id):
-		return HashEntry.query.get(hash_id) is not None
+		return self._entry_for(hash_id) is not None
 
 	def get_list_id(self, hash_id):
-		entry = HashEntry.query.get(hash_id)
+		entry = self._entry_for(hash_id)
 		if entry is None:
 			raise NotInStorageError()
 		return entry.list_id
@@ -41,6 +44,12 @@ class SQLHashStorage(HashStorage):
 		if entry is None:
 			raise NotInStorageError()
 		return entry.hash_id
+
+	def delete_hash_id(self, hash_id):
+		entry = self._entry_for(hash_id)
+		if entry is not None:
+			db.session.delete(entry)
+			db.session.commit()
 
 	def hashes(self):
 		return (e.hash_id for e in HashEntry.query.all())
