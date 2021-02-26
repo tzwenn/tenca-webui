@@ -3,9 +3,9 @@
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
-  <title>{% block title %}{% endblock %} - Tenca</title>
-  {% if config.CUSTOMIZED_BULMA_URL %}
-    <link rel="stylesheet" href="{{ config.CUSTOMIZED_BULMA_URL }}">
+  <title>{% block title %}{% endblock %} - {{ config.BRAND_CAPTION }}</title>
+  {% if config.BRAND_BULMA_URL %}
+    <link rel="stylesheet" href="{{ config.BRAND_BULMA_URL }}">
   {% else %}
     <link rel="stylesheet" href="{{ url_for('static', filename='css/bulma.0.9.2.min.css') }}">
   {% endif %}
@@ -19,14 +19,13 @@
 <nav class="navbar" role="navigation" aria-label="main navigation">
   <div class="navbar-brand">
     <span class="navbar-item">
-      {% if config.LOGO_URL %}
-        <img class="brand-logo" src="{{ settings.LOGO_URL }}">
+      {% if config.BRAND_LOGO_URL %}
+        <img class="brand-logo" src="{{ config.BRAND_LOGO_URL }}">
       {% else %}
         <i class="fas fa-mail-bulk fa-2x brand-logo"></i>
       {% endif %}
-      Tenca
+      {{ config.BRAND_CAPTION }}
     </span>
-
 
     <a role="button" class="navbar-burger" aria-label="menu" aria-expanded="false" data-target="tenca-navbar">
       <span aria-hidden="true"></span>
@@ -67,10 +66,8 @@
       <div class="columns">
         <div class="column is-three-fifths is-offset-one-fifth ">
           <header>
-            <h1 class="subtitle is-1">
-              
-            {% block header %}{% endblock %}
-            </h1>
+            <h1 class="title is-2">{% block header %}{% endblock %}</h1>
+            {% block subtitle %}{% endblock %}
           </header>
 
           {% for category, message in get_flashed_messages(with_categories=true) %}
