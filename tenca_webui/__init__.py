@@ -65,13 +65,13 @@ def create_app(test_config=None):
 
 		return render_template('manage_list.html', mailing_list=mailing_list)
 
-	@app.route('/dashboard/')
+	# Atm, I don't know how to plug oidc into a Blueprint.
+	# Hence, this ugly hack here. Sorry.
+	@app.route('/dashboard/', methods=('GET', 'POST'))
 	@oidc.require_login
 	def dashboard():
-		email = oidc.user_getfield('email')
-		member_of = conn.find_lists(email, role='member')
-		owner_of = conn.find_lists(email, role='owner')
-		return render_template('dashboard.html', member_of=member_of, owner_of=owner_of)
+		from . import dashboard
+		return dashboard.index()
 
 	@app.route('/logout/')
 	def logout():

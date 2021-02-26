@@ -1,3 +1,8 @@
 .brand-logo {
 	margin-right: 0.5em;
 }
+
+.wrappable-list-id {
+	overflow: hidden;
+	word-wrap: anywhere;
+}

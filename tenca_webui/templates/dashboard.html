@@ -6,23 +6,59 @@
 
 {% block content %}
 
-<p>Hi {{ g.oidc.user_getfield('email') }},</p>
+<p>
+<h4 class="title is-4 ">Create New List</h4>
+<form method="post">
+	<div class="field has-addons">
+		<div class="control has-icons-left is-expanded">
+			<input class="input" type="text" name="listname" placeholder="my-fancy-listname">
+			<span class="icon is-small is-left">
+				<i class="fas fa-mail-bulk"></i>
+			</span>
+		</div>
+		<div class="control">
+			<a class="button is-static">
+				@{{ g.conn.domain }}
+			</a>
+		</div>
+	</div>
 
-<p>you are owner of:</p>
+	<div class="field is-grouped is-grouped-left">
+		<div class="control">
+			<button type="submit" class="button is-primary">
+				Create!
+			</button>
+		</div>
+	</div>
+</form>
+</p>
 
-<ul>
-{% for list in owner_of %}
-	<li><a href="{{ url_for('manage_list', list_id=list.list_id) }}"">{{ list.fqdn_listname }}</a></li>
+{% if memberships  %}
+<p>
+<h4 class="title is-4">Your Memberships</h4>
+
+{% for list, is_owner in memberships %}
+<form>
+	<div class="box">
+		<div class="columns">
+			<div class="column">
+				<a class="is-family-code wrappable-list-id" href="{{ url_for('change_membership.index', hash_id=list.hash_id) }}">
+					{{ list.fqdn_listname }}
+				</a>
+			</div>
+			{% if is_owner %}
+			<div class="column has-text-right">
+			<a class="tag is-black" href="{{ url_for('manage_list', list_id=list.list_id) }}">
+				Owner
+			</a>
+			</div>
+			{% endif %}
+		</div>
+	</div>
+</form>
 {% endfor %}
-</ul>
 
-<p>and member of:</p>
+</p>
+{% endif %}
 
-<ul>
-	{% for list in member_of %}
-		<li><a href="{{ url_for('change_membership.index', hash_id=list.hash_id) }}"">{{ list.fqdn_listname }}</a></li>
-	{% endfor %}
-</ul>
-
-<p>(and here comes a form to add a new list)</p>
 {% endblock %}
