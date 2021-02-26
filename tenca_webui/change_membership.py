@@ -1,5 +1,7 @@
 from flask import Blueprint, abort, current_app, g, render_template, request
 from markupsafe import escape
+from wtforms import Form, validators
+from wtforms.fields.html5 import EmailField
 
 bp = Blueprint('change_membership', __name__)
 
@@ -9,19 +11,21 @@ def find_mailing_list(unescaped_hash_id):
 		abort(404)
 	return mailing_list
 
+class SubscriptionForm(Form):
+	email = EmailField('E-Mail Address', [validators.Email()])
+
 @bp.route('/<hash_id>/', methods=('GET', 'POST'))
 def index(hash_id):
 	mailing_list = find_mailing_list(hash_id)
+	form = SubscriptionForm(request.form)
 
-	if request.method == 'POST':
-		email = request.form["email"]
-		# TODO: validate email
-		joined, token = mailing_list.toggle_membership(email)
+	if request.method == 'POST' and form.validate():
+		joined, token = mailing_list.toggle_membership(form.email.data)
 		current_app.logger.info('Received {} request for "{}", with token {}.'.format(
 			'subscription' if joined else 'unsubscription',
-			email, token
+			form.email.data, token
 		))
 
 		return render_template('change_membership/finished.html')
 
-	return render_template('change_membership/index.html', mailing_list=mailing_list)
+	return render_template('change_membership/index.html', form=form, mailing_list=mailing_list)

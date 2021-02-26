@@ -10,18 +10,32 @@
 
 <form method="post">
 	<div class="field">
-		<label class="label">E-mail</label>
-		<div class="control has-icons-left">
-			<input class="input is-normal" name="email" type="email" placeholder="E-mail" value="{{ g.oidc.user_getfield('email') if g.oidc.user_loggedin else '' }}">
+	    {{ form.email.label(class='label') }}
+		<div class="control has-icons-left has-icons-right">
+			{{ form.email(class='input' + (' is-danger' if form.email.errors else ''), placeholder=form.email.label.text,
+				value=((form.email.errors and form.email.data|e) or (g.oidc.user_loggedin and g.oidc.user_getfield('email'))  or ''))
+			}}
 			<span class="icon is-small is-left">
 				<i class="fas fa-envelope"></i>
 			</span>
+			{% if form.email.errors %}
+			<span class="icon is-small is-right">
+				<i class="fas fa-exclamation-triangle"></i>
+			</span>
+			{% endif %}
 		</div>
+		{% if form.email.errors %}
+		<p class="help is-danger">
+			{% for error in form.email.errors %}
+			<span>{{ error }}</span>
+			{% endfor %}
+		</p>
+		{% endif %}
 	</div>
 
 	<div class="field is-grouped is-grouped-left">
 		<div class="control">
-			<button type="submit" class="button is-primary is-normal">
+			<button type="submit" class="button is-primary">
 				Un-/subscribe!
 			</button>
 		</div>
