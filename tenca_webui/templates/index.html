@@ -1,12 +1,18 @@
 {% extends 'base.html' %}
 
 {% block header %}
-  <h1>{% block title %}Welcome{% endblock %}</h1>
+{% block title %}Welcome{% endblock %}
 {% endblock %}
 
 {% block content %}
 <p>
-This is the landing page!<br />
-Please <a href="{{ url_for('dashboard') }}">log in</a> to create lists.
+Login to create your own e-mail discussion mailing list in a second! 
+</p>
+
+<p>
+<a class="button is-primary" href="{{ url_for('dashboard') }}">
+  <span class="icon"><i class="fas fa-sign-in-alt"></i></span>
+  <span>Login using OpenID Connect </span>
+</a>
 </p>
 {% endblock %}
