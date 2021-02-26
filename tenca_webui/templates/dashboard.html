@@ -1,0 +1,28 @@
+{% extends 'base.html' %}
+
+{% block header %}
+  <h1>{% block title %}Dashboard{% endblock %}</h1>
+{% endblock %}
+
+{% block content %}
+
+<p>Hi {{ g.oidc.user_getfield('email') }},</p>
+
+<p>you are owner of:</p>
+
+<ul>
+{% for list in owner_of %}
+	<li><a href="{{ url_for('manage_list', list_id=list.list_id) }}"">{{ list.fqdn_listname }}</a></li>
+{% endfor %}
+</ul>
+
+<p>and member of:</p>
+
+<ul>
+	{% for list in member_of %}
+		<li><a href="{{ url_for('change_membership', hash_id=list.hash_id) }}"">{{ list.fqdn_listname }}</a></li>
+	{% endfor %}
+</ul>
+
+<p>(and here comes a form to add a new list)</p>
+{% endblock %}

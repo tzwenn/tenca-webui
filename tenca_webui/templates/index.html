@@ -1,0 +1,12 @@
+{% extends 'base.html' %}
+
+{% block header %}
+  <h1>{% block title %}Welcome{% endblock %}</h1>
+{% endblock %}
+
+{% block content %}
+<p>
+This is the landing page!<br />
+Please <a href="{{ url_for('dashboard') }}">log in</a> to create lists.
+</p>
+{% endblock %}

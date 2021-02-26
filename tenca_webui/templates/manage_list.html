@@ -1,0 +1,10 @@
+{% extends 'base.html' %}
+
+{% block header %}
+  <h1>{% block title %}Manage List{% endblock %}</h1>
+{% endblock %}
+
+{% block content %}
+<p>This is the admin view for the owners of "{{ mailing_list.fqdn_listname }}"!</p>
+<p>Share <a href="{{ url_for('change_membership', hash_id=mailing_list.hash_id) }}">this link</a> to invite people.</p>
+{% endblock %}

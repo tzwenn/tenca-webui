@@ -1,7 +1,7 @@
 import urllib.error
 import os
 
-from flask import Flask, abort
+from flask import Flask, abort, g, redirect, render_template, url_for
 from flask_oidc import OpenIDConnect
 from markupsafe import escape
 
@@ -28,20 +28,16 @@ def create_app(test_config=None):
 
 	################################################################################
 
-	from . import db
+	from tenca_webui import db
 	db.init_db(app)
 
 	oidc = OpenIDConnect(app)
-	conn = tenca.connection.Connection(db.SQLHashStorage)
+	conn = tenca.connection.Connection() #db.SQLHashStorage)
 
-	import urllib.error
-	try:
-		conn.client.delete_list(conn.fqdn_ize('sqllist'))
-	except urllib.error.HTTPError:
-		pass
-	
-	l = conn.add_list('sqllist', 'mail@svenkoehler.de')
-	l.add_member('person2@svenkoehler.de')
+	@app.before_request
+	def before_request():
+		g.oidc = oidc
+		g.conn = conn
 
 	################################################################################
 
@@ -59,7 +55,10 @@ def create_app(test_config=None):
 
 	@app.route('/')
 	def index():
-		return 'This is the main page!<br />Please <a href="/dashboard">log in</a> to create lists.'
+		if oidc.user_loggedin:
+			return redirect(url_for('dashboard'))
+		else:
+			return render_template('index.html')
 
 	@app.route('/confirm/<list_id>/<token>/')
 	def confirm_action(list_id, token):
@@ -94,50 +93,41 @@ def create_app(test_config=None):
 	@oidc.require_login
 	def manage_list(list_id):
 		mailing_list = conn.get_list(escape(list_id))
-		if mailing_list is None:
-			return 'No such mailing list'
-		if not mailing_list.is_owner(oidc.user_getfield('email')):
-			return 'Nice try, but you are no owner of "%s".' % mailing_list.fqdn_listname
+		if mailing_list is None or not mailing_list.is_owner(oidc.user_getfield('email')):
+			abort(404)
 
-		return ('<p>This is the admin view for the owners of "%s"!</p>'
-			'<p>Share <a href="/%s">this link</a> to invite people.</p>') % (mailing_list.fqdn_listname, mailing_list.hash_id)
+		return render_template('manage_list.html', mailing_list=mailing_list)
 
 	@app.route('/dashboard/')
 	@oidc.require_login
-	def user_dashboard():
+	def dashboard():
 		email = oidc.user_getfield('email')
 		member_of = conn.find_lists(email, role='member')
 		owner_of = conn.find_lists(email, role='owner')
+		return render_template('dashboard.html', member_of=member_of, owner_of=owner_of)
 
-		def format_enumeration(lists, func):
-			return "\n".join('<li><a href="/%s">%s</a></li>' % (func(list), list.fqdn_listname) for list in lists)
-
-		return "\n".join('<p>{}</p>'.format(par) for par in (
-			'Hi {},',
-			'you are owner of:',
-			'<ul>{}</ul>',
-			'and member of:',
-			'<ul>{}</ul>',
-			'(and here comes a form to add a new list)',
-		)).format(
-			email,
-			format_enumeration(owner_of, func=lambda l: 'manage/' + l.list_id),
-			format_enumeration(member_of, func=lambda l: l.hash_id),
-		)
+	@app.route('/logout/')
+	def logout():
+		oidc.logout()
+		return redirect(url_for('index'))
 
 	@app.route('/<hash_id>/')
-	def subscribe_list(hash_id):
-		manage_list = conn.get_list_by_hash_id(escape(hash_id))
-		if manage_list is None:
+	def change_membership(hash_id):
+		mailing_list = conn.get_list_by_hash_id(escape(hash_id))
+		if mailing_list is None:
 			abort(404)
-		return 'Displaying (un-)subscription form of "%s"' % manage_list.fqdn_listname
+		return render_template('change_membership.html', mailing_list=mailing_list)
 
 	@app.route('/<hash_id>/<legacy_admin_token>/')
 	@oidc.require_login
 	def legacy_manage_list(hash_id, legacy_admin_token):
-		manage_list = conn.get_list_by_hash_id(escape(hash_id))
-		if manage_list is None:
+		mailing_list = conn.get_list_by_hash_id(escape(hash_id))
+		if mailing_list is None:
 			abort(404)
-		return 'Forwarding to the management form of "%s", if "%s" is the correct token.' % ( manage_list.fqdn_listname, escape(legacy_admin_token))
+
+		# If owner: Forward
+		# If member: Promote & Forward
+		# If not member: Request to join first
+		return 'Forwarding to the management form of "%s", if "%s" is the correct token.' % ( mailing_list.fqdn_listname, escape(legacy_admin_token))
 
 	return app
