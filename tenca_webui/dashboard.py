@@ -1,7 +1,6 @@
 from flask import Markup, flash, g, redirect, render_template, request, url_for
 
-def css_codify(s):
-	return '<span class="is-family-code wrappable-list-id">{}</span>'.format(s)
+from ._macros import css_codify
 
 def index():
 	if request.method == 'POST':

@@ -5,14 +5,19 @@
 {% endblock %}
 
 {% block content %}
-<p>This is the admin view for the owners of "{{ mailing_list.fqdn_listname }}".</p>
+<p>This is the admin view for the owners of <span class="is-family-code wrappable-list-id">{{ mailing_list.fqdn_listname }}</span>.</p>
 
 <h4 class="title is-4">Invite Link</h4>
+
+{% import '_macros.html' as tenca_macros %}
+
 <p>Share this link to invite new members: </p>
 <p>
-	<a class="is-family-code wrappable-list-id" href="{{ url_for('change_membership.index', hash_id=mailing_list.hash_id) }}">{{ url_for('change_membership.index', hash_id=mailing_list.hash_id, _external=True) }}</a>
+{{ tenca_macros.copyable_link_box('invite_link', url_for('change_membership.index', hash_id=mailing_list.hash_id, _external=True)) }}
 </p>
 
+
+<p>
 <h4 class="title is-4">Members</h4>
 
 {% for member in mailing_list.list.members %}
@@ -22,8 +27,8 @@
 			<div class="column">
 				<span class="is-family-code wrappable-list-id">{{ member.address }}</span>
 			</div>
-			<div class="column has-text-right">
-				<button class="button icon is-danger" type="submit">
+			<div class="column is-1 has-text-right">
+				<button class="button icon is-danger" title="Remove User" type="submit">
 					<i class="fas fa-trash fa-xs"></i>
 				</button>
 			</div>
@@ -31,8 +36,27 @@
 	</div>
 </form>
 {% endfor %}
+</p>
 
+<p>
+<h4 class="title is-4">Delete List</h4>
 
+<form>
+	<p>This permanently deletes all memberships and settings.
+	Please, type the list's address in all-caps (<span class="is-family-code wrappable-list-id is-uppercase">{{ mailing_list.fqdn_listname }}</span>) to confirm:</p>
+
+	<div class="field has-addons">
+		<div class="control is-expanded">
+		  <input class="input" type="verification_name" placeholder="Type in upper-case address to confirm">
+		</div>
+		<div class="control">
+		  <a class="button is-danger">
+			Delete
+		  </a>
+		</div>
+	  </div>
+</form>
+</p>
 
 
 {% endblock %}

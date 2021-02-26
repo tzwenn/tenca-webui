@@ -28,3 +28,13 @@ document.addEventListener('DOMContentLoaded', () => {
   /* End example Bulma snippet */
 
 });
+
+function element_content_to_clipboard(element_id) {
+  var field  = document.getElementById(element_id);
+  var range = document.createRange();
+  range.selectNode(field);
+  window.getSelection().addRange(range);
+
+  document.execCommand('copy');
+  window.getSelection().removeAllRanges();
+} 
