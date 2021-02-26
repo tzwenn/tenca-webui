@@ -56,15 +56,6 @@ def create_app(test_config=None):
 	from . import action
 	app.register_blueprint(action.bp)
 
-	@app.route('/manage/<list_id>/')
-	@oidc.require_login
-	def manage_list(list_id):
-		mailing_list = conn.get_list(escape(list_id))
-		if mailing_list is None or not mailing_list.is_owner(oidc.user_getfield('email')):
-			abort(404)
-
-		return render_template('manage_list.html', mailing_list=mailing_list)
-
 	# Atm, I don't know how to plug oidc into a Blueprint.
 	# Hence, this ugly hack here. Sorry.
 	@app.route('/dashboard/', methods=('GET', 'POST'))
@@ -72,6 +63,12 @@ def create_app(test_config=None):
 	def dashboard():
 		from . import dashboard
 		return dashboard.index()
+
+	@app.route('/manage/<list_id>/')
+	@oidc.require_login
+	def manage_list(list_id):
+		from . import manage_list
+		return manage_list.index(list_id)
 
 	@app.route('/logout/')
 	def logout():

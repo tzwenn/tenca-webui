@@ -5,6 +5,34 @@
 {% endblock %}
 
 {% block content %}
-<p>This is the admin view for the owners of "{{ mailing_list.fqdn_listname }}"!</p>
-<p>Share <a href="{{ url_for('change_membership.index', hash_id=mailing_list.hash_id) }}">this link</a> to invite people.</p>
+<p>This is the admin view for the owners of "{{ mailing_list.fqdn_listname }}".</p>
+
+<h4 class="title is-4">Invite Link</h4>
+<p>Share this link to invite new members: </p>
+<p>
+	<a class="is-family-code wrappable-list-id" href="{{ url_for('change_membership.index', hash_id=mailing_list.hash_id) }}">{{ url_for('change_membership.index', hash_id=mailing_list.hash_id, _external=True) }}</a>
+</p>
+
+<h4 class="title is-4">Members</h4>
+
+{% for member in mailing_list.list.members %}
+<form>
+	<div class="box">
+		<div class="columns">
+			<div class="column">
+				<span class="is-family-code wrappable-list-id">{{ member.address }}</span>
+			</div>
+			<div class="column has-text-right">
+				<button class="button icon is-danger" type="submit">
+					<i class="fas fa-trash fa-xs"></i>
+				</button>
+			</div>
+		</div>
+	</div>
+</form>
+{% endfor %}
+
+
+
+
 {% endblock %}
