@@ -40,6 +40,10 @@ def create_app(test_config=None):
 		g.oidc = oidc
 		g.conn = conn
 
+	@app.errorhandler(404)
+	def page_not_found(e):
+		return render_template('404.html'), 404
+
 	################################################################################
 
 	def lookup_list_and_email_by_action(list_id, token):
