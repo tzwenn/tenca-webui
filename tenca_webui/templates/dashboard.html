@@ -20,7 +20,7 @@
 
 <ul>
 	{% for list in member_of %}
-		<li><a href="{{ url_for('change_membership', hash_id=list.hash_id) }}"">{{ list.fqdn_listname }}</a></li>
+		<li><a href="{{ url_for('change_membership.index', hash_id=list.hash_id) }}"">{{ list.fqdn_listname }}</a></li>
 	{% endfor %}
 </ul>
 

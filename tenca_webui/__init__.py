@@ -1,7 +1,7 @@
 import urllib.error
 import os
 
-from flask import Flask, abort, g, redirect, render_template, url_for
+from flask import Flask, abort, flash, g, redirect, render_template, request, url_for
 from flask_oidc import OpenIDConnect
 from markupsafe import escape
 
@@ -116,23 +116,17 @@ def create_app(test_config=None):
 		oidc.logout()
 		return redirect(url_for('index'))
 
-	@app.route('/<hash_id>/')
-	def change_membership(hash_id):
-		mailing_list = conn.get_list_by_hash_id(escape(hash_id))
-		if mailing_list is None:
-			abort(404)
-		return render_template('change_membership.html', mailing_list=mailing_list)
+	from . import change_membership
+	app.register_blueprint(change_membership.bp)
 
 	@app.route('/<hash_id>/<legacy_admin_token>/')
 	@oidc.require_login
 	def legacy_manage_list(hash_id, legacy_admin_token):
-		mailing_list = conn.get_list_by_hash_id(escape(hash_id))
-		if mailing_list is None:
-			abort(404)
+		mailing_list = change_membership.find_mailing_list(hash_id)
 
 		# If owner: Forward
 		# If member: Promote & Forward
 		# If not member: Request to join first
-		return 'Forwarding to the management form of "%s", if "%s" is the correct token.' % ( mailing_list.fqdn_listname, escape(legacy_admin_token))
+		return 'Forwarding to the management form of "%s", if "%s" is the correct token.' % (mailing_list.fqdn_listname, escape(legacy_admin_token))
 
 	return app

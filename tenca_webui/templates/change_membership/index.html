@@ -1,0 +1,31 @@
+{% extends 'base.html' %}
+
+{% block header %}
+{% block title %}Change Membership{% endblock %}
+{% endblock %}
+
+{% block content %}
+
+<p>Enter the e-mail address you want to un-/subscribe from/to <strong>{{ mailing_list.fqdn_listname }}</strong>.</p>
+
+<form method="post">
+	<div class="field">
+		<label class="label">E-mail</label>
+		<div class="control has-icons-left">
+			<input class="input is-normal" name="email" type="email" placeholder="E-mail" value="{{ g.oidc.user_getfield('email') if g.oidc.user_loggedin else '' }}">
+			<span class="icon is-small is-left">
+				<i class="fas fa-envelope"></i>
+			</span>
+		</div>
+	</div>
+
+	<div class="field is-grouped is-grouped-left">
+		<div class="control">
+			<button type="submit" class="button is-primary is-normal">
+				Un-/subscribe!
+			</button>
+		</div>
+	</div>
+</form>
+
+{% endblock %}

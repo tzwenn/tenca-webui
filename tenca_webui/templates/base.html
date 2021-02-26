@@ -71,7 +71,7 @@
           </header>
 
           {% for category, message in get_flashed_messages(with_categories=true) %}
-            <div class="notification is-{{ category }}">
+            <div class="notification{{ '' if category == 'message' else ' is-' + category }}">
                 {{ message }}
             </div>
           {% endfor %}
