@@ -2,6 +2,8 @@ from flask import Blueprint, Markup, abort, current_app, escape, flash, g, rende
 
 import tenca.exceptions
 
+from ._macros import css_codify
+
 bp = Blueprint('action', __name__)
 
 def lookup_list_and_email_by_action(list_id, token):
@@ -27,9 +29,9 @@ def confirm_action(list_id, token):
 
 	if email is not None:
 		g.conn.mark_address_verified(email)
-		flash(Markup('{} has successfully joined <strong>{}</strong>.'.format(email, mailing_list.fqdn_listname)), category='success')
+		flash(Markup('{} has successfully joined {}.'.format(email, css_codify(mailing_list.fqdn_listname))), category='success')
 	else:
-		flash(Markup('Ok. Thx. Bye from <strong>{}</strong>.'.format(mailing_list.fqdn_listname)), category='success')
+		flash(Markup('Ok. Thx. Bye from {}.'.format(css_codify(mailing_list.fqdn_listname))), category='success')
 	
 	return render_template('action.html')
 
@@ -45,7 +47,7 @@ def report_action(list_id, token):
 	except tenca.exceptions.NoSuchRequestException:
 		pass # We don't tell.
 
-	flash('Your report has been logged. Thank you.'.format(mailing_list.fqdn_listname), category='success')
+	flash('Your report has been logged. Thank you.', category='success')
 
 	return render_template('action.html')
 

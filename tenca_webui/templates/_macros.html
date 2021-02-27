@@ -1,12 +1,12 @@
-{% macro css_codify(value, tag='span', other_attrs='') -%}
-	<{{ tag }} class="is-family-code wrappable-list-id" {{ other_attrs }}>{{ value }}</{{ tag }}>
+{% macro css_codify(value, tag='span', other_classes='', other_attrs='') -%}
+	<{{ tag }} class="is-family-code wrappable-list-id {{ other_classes }}" {{ other_attrs }}>{{ value }}</{{ tag }}>
 {%- endmacro %}
 
 {% macro copyable_link_box(element_id, value) -%}
 <div class="box">
 	<div class="columns">
 		<div class="column">
-			{{ css_codify(value, 'a', 'href=' + value + ' id=' + element_id) }}
+			{{ css_codify(value, 'a', other_attrs='href=' + value + ' id=' + element_id) }}
 		</div>
 		<div class="column is-1 has-text-right">
 			<button class="button icon is-white" title="Copy to Clipboard" onclick="element_content_to_clipboard('{{ element_id }}')">
