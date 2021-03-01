@@ -16,11 +16,40 @@ def lookup_list_id(view):
 		return view(list_id, mailing_list=mailing_list, **kwargs)
 	return wrapped_view
 
+def edit_member(mailing_list):
+	member_address = request.form.get('member_address')
+	if not member_address:
+		return True
 
-@bp.route('/<list_id>/')
+	operations = [
+		('remove_member', mailing_list.remove_member_silently, 'Removed {}'),
+		('promote_member', mailing_list.promote_to_owner, 'Promoted {}'),
+		('demote_member', mailing_list.demote_from_owner, 'Demoted {}'),
+	]
+	for (name, func, success_string) in operations:
+		if name in request.form:
+			try:
+				func(member_address)
+			except Exception as e:
+				flash(Markup('An Error occurred: {}'.format(escape(str(e)))), category='danger')
+			else:
+				flash(Markup(success_string.format(member_address)), category='success')
+
+	if is_current_user(member_address):
+		# If you demote yourself, you cannot access the admin page anymore
+		return not any(x in request.form for x in ['remove_member', 'demote_member'])
+
+	return True
+
+
+@bp.route('/<list_id>/', methods=('POST', 'GET'))
 @oidc.require_login
 @lookup_list_id
 def index(list_id, mailing_list):
+	if request.method == 'POST':
+		if not edit_member(mailing_list):
+			return redirect(url_for('dashboard.index'))
+
 	list_bool_options = [
 		('notsubscribed_allowed_to_post', 'Not subscribed users are allowed to post.', mailing_list.notsubscribed_allowed_to_post),
 		('replies_addressed_to_list', 'Replies are addressed to the list per default.', True),
@@ -47,27 +76,3 @@ def delete(list_id, mailing_list):
 		return redirect(url_for('.index', list_id=list_id))
 	else:
 		abort(400)
-
-@bp.route('/<list_id>/edit_member/', methods=('POST', ))
-@oidc.require_login
-@lookup_list_id
-def edit_member(list_id, mailing_list):
-	member_address = request.form.get('member_address')
-
-	def handle_post(name, func, success_string):
-		if name in request.form:
-			try:
-				func(member_address)
-			except Exception as e:
-				flash(Markup('An Error occurred: {}'.format(escape(str(e)))), category='danger')
-			else:
-				flash(Markup(success_string.format(member_address)), category='success')
-
-	handle_post('remove_member', mailing_list.remove_member_silently, 'Removed {}')
-	handle_post('promote_member', mailing_list.promote_to_owner, 'Promoted {}')
-	handle_post('demote_member', mailing_list.demote_from_owner, 'Demoted {}')
-	if 'demote_member' in request.form and is_current_user(member_address):
-		# If you demote yourself, you cannot access the admin page anymore
-		return redirect(url_for('dashboard.index'))
-
-	return redirect(url_for('.index', list_id=list_id))
