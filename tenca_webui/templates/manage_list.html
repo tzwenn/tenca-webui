@@ -47,17 +47,18 @@
 <h4 class="title is-4">Members</h4>
 
 {% for address, is_owner in mailing_list.get_owners_and_members() %}
-<form>
+<form action="{{ url_for('.edit_member', list_id=mailing_list.list_id) }}" method="post">
 	<div class="box">
 		<div class="columns">
 			<div class="column">
 				{{ tenca_macros.css_codify(address) }}
 			</div>
 			<div class="column is-3 has-text-right">
-				<button class="button icon is-primary{{ '' if is_owner else 'is-outlined' }}" title="{{ 'Demote from Owner' if is_owner else 'Promote to Owner' }}" type="submit">
+				<input name="member_address" type="hidden" value="{{ address }}">
+				<button name="{{ 'demote_member' if is_owner else 'promote_member' }}" class="button icon is-primary{{ '' if is_owner else 'is-outlined' }}" title="{{ 'Demote from Owner' if is_owner else 'Promote to Owner' }}" type="submit">
 					<i class="fas fa-user{{'-cog' if is_owner else ''}} fa-xs"></i>
 				</button>
-				<button class="button icon is-danger" title="Remove User" type="submit">
+				<button name="remove_member" class="button icon is-danger" title="Remove Member" type="submit">
 					<i class="fas fa-trash fa-xs"></i>
 				</button>
 			</div>

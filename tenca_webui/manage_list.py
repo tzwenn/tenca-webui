@@ -3,7 +3,7 @@ from flask import Blueprint, Markup, abort, escape, flash, g, redirect, render_t
 import functools
 
 from ._macros import css_codify
-from .auth import oidc
+from .auth import is_current_user, oidc
 
 bp = Blueprint('manage_list', __name__, url_prefix='/manage')
 
@@ -32,8 +32,7 @@ def index(list_id, mailing_list):
 @oidc.require_login
 @lookup_list_id
 def delete(list_id, mailing_list):
-	print(request.method, request.form)
-	if request.method == "POST" and "delete_submit" in request.form and "confirmation_phrase" in request.form:
+	if "delete_submit" in request.form and "confirmation_phrase" in request.form:
 		confirmation_phrase = escape(request.form["confirmation_phrase"])
 		if confirmation_phrase != (mailing_list.fqdn_listname).upper():
 			flash("Wrong confirmation phrase. Try again.", category="danger")
@@ -41,10 +40,34 @@ def delete(list_id, mailing_list):
 			try:
 				g.conn.delete_list(mailing_list.fqdn_listname)
 			except Exception as e:
-				flash(Markup("Cannot delete: {}".format(css_codify(str(e)))))
+				flash(Markup('Cannot delete: {}'.format(css_codify(str(e)))))
 			else:
-				flash(Markup("Deleted {}.".format(css_codify(mailing_list.fqdn_listname))), category="success")
+				flash(Markup('Deleted {}.'.format(css_codify(mailing_list.fqdn_listname))), category='success')
 				return redirect(url_for('dashboard.index'))
 		return redirect(url_for('.index', list_id=list_id))
 	else:
 		abort(400)
+
+@bp.route('/<list_id>/edit_member/', methods=('POST', ))
+@oidc.require_login
+@lookup_list_id
+def edit_member(list_id, mailing_list):
+	member_address = request.form.get('member_address')
+
+	def handle_post(name, func, success_string):
+		if name in request.form:
+			try:
+				func(member_address)
+			except Exception as e:
+				flash(Markup('An Error occurred: {}'.format(escape(str(e)))), category='danger')
+			else:
+				flash(Markup(success_string.format(member_address)), category='success')
+
+	handle_post('remove_member', mailing_list.remove_member_silently, 'Removed {}')
+	handle_post('promote_member', mailing_list.promote_to_owner, 'Promoted {}')
+	handle_post('demote_member', mailing_list.demote_from_owner, 'Demoted {}')
+	if 'demote_member' in request.form and is_current_user(member_address):
+		# If you demote yourself, you cannot access the admin page anymore
+		return redirect(url_for('dashboard.index'))
+
+	return redirect(url_for('.index', list_id=list_id))
