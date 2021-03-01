@@ -21,8 +21,8 @@
 {{ tenca_macros.copyable_link_box('invite_link', url_for('change_membership.index', hash_id=mailing_list.hash_id, _external=True)) }}
 </p>
 
-<p>
 <h4 class="title is-4">Options</h4>
+<p>
 {% for name, description, value in list_bool_options %}
 <form>
 <div class="box">
@@ -43,8 +43,8 @@
 </p>
 
 
-<p>
 <h4 class="title is-4">Members</h4>
+<p>
 
 {% for address, is_owner in mailing_list.get_owners_and_members() %}
 <form action="{{ url_for('manage_list.index', list_id=mailing_list.list_id) }}" method="post">
@@ -68,8 +68,8 @@
 {% endfor %}
 </p>
 
-<p>
 <h4 class="title is-4">Delete List</h4>
+<p>
 
 <form action="{{ url_for('.delete', list_id=mailing_list.list_id) }}" method="post">
 	<p>This permanently deletes all memberships and settings.
@@ -82,7 +82,7 @@
 		<div class="control">
 		  <button id="delete_submit" class="button is-danger" name="delete_submit" title="Permanently Delete List" type="submit" disabled>
 			Delete
-		  </a>
+		  </button>
 		</div>
 	  </div>
 </form>
