@@ -42,7 +42,7 @@
       {% if g.oidc.user_loggedin %}
       <div class="navbar-item">
         <div class="buttons">
-          <a class="button is-white" href="{{ url_for('dashboard') }}">{{ g.oidc.user_getfield('email') }}</a>
+          <a class="button is-white" href="{{ url_for('dashboard.index') }}">{{ g.oidc.user_getfield('email') }}</a>
         </div>
       </div>
       {% endif %}
@@ -51,7 +51,7 @@
           {% if g.oidc.user_loggedin %}
           <a class="button is-light" href="{{ url_for('logout') }}">Log out</a>
           {% else %}
-          <a class="button is-primary" href="{{ url_for('dashboard') }}">Log in</a>
+          <a class="button is-primary" href="{{ url_for('login') }}">Log in</a>
           {% endif %}
         </div>
       </div>

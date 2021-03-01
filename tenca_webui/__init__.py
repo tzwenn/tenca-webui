@@ -2,7 +2,6 @@ import urllib.error
 import os
 
 from flask import Flask, abort, flash, g, redirect, render_template, request, url_for
-from flask_oidc import OpenIDConnect
 from markupsafe import escape
 
 import tenca.connection
@@ -29,10 +28,12 @@ def create_app(test_config=None):
 
 	################################################################################
 
-	from tenca_webui import db
+	from . import db
 	db.init_db(app)
 
-	oidc = OpenIDConnect(app)
+	from .auth import oidc
+	oidc.init_app(app)
+
 	conn = tenca.connection.Connection() #db.SQLHashStorage)
 
 	@app.before_request
@@ -49,26 +50,23 @@ def create_app(test_config=None):
 	@app.route('/')
 	def index():
 		if oidc.user_loggedin:
-			return redirect(url_for('dashboard'))
+			return redirect(url_for('dashboard.index'))
 		else:
 			return render_template('index.html')
 
 	from . import action
 	app.register_blueprint(action.bp)
 
-	# Atm, I don't know how to plug oidc into a Blueprint.
-	# Hence, this ugly hack here. Sorry.
-	@app.route('/dashboard/', methods=('GET', 'POST'))
-	@oidc.require_login
-	def dashboard():
-		from . import dashboard
-		return dashboard.index()
+	from . import dashboard
+	app.register_blueprint(dashboard.bp)
 
-	@app.route('/manage/<list_id>/')
+	from . import manage_list
+	app.register_blueprint(manage_list.bp)
+
+	@app.route('/login/')
 	@oidc.require_login
-	def manage_list(list_id):
-		from . import manage_list
-		return manage_list.index(list_id)
+	def login():
+		return redirect(url_for('dashboard.index'))
 
 	@app.route('/logout/')
 	def logout():

@@ -48,7 +48,7 @@
 			</div>
 			{% if is_owner %}
 			<div class="column is-2 has-text-right">
-			<a class="tag is-black" title="Open Admin Page" href="{{ url_for('manage_list', list_id=list.list_id) }}">
+			<a class="tag is-black" title="Open Admin Page" href="{{ url_for('manage_list.index', list_id=list.list_id) }}">
 				Owner
 			</a>
 			</div>

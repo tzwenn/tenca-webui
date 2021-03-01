@@ -1,8 +1,14 @@
-from flask import Markup, escape, flash, g, render_template, request, url_for
+from flask import Blueprint, Markup, abort, escape, flash, g, render_template, request, url_for
 
+from .auth import oidc
+
+bp = Blueprint('manage_list', __name__, url_prefix='/manage')
+
+@bp.route('/<list_id>/')
+@oidc.require_login
 def index(list_id):
 	mailing_list = g.conn.get_list(escape(list_id))
-	if mailing_list is None or not mailing_list.is_owner(g.oidc.user_getfield('email')):
+	if mailing_list is None or not mailing_list.is_owner(oidc.user_getfield('email')):
 		abort(404)
 
 	list_bool_options = [
