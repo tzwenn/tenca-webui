@@ -16,18 +16,42 @@
 {{ tenca_macros.copyable_link_box('invite_link', url_for('change_membership.index', hash_id=mailing_list.hash_id, _external=True)) }}
 </p>
 
+<p>
+<h4 class="title is-4">Options</h4>
+{% for name, description, value in list_bool_options %}
+<form>
+<div class="box">
+	<div class="columns">
+		<div class="column">
+			{{ description }}
+		</div>
+		<div class="column is-3 has-text-right">
+			<div class="buttons has-addons is-right">
+				<button class="button{{ ' is-success is-selected' if value else ''}}">Yes</button>
+				<button class="button{{ ' is-danger is-selected' if not value else ''}}">No</button>
+			</div>
+		</div>
+	</div>
+</div>
+</form>
+{% endfor %}
+</p>
+
 
 <p>
 <h4 class="title is-4">Members</h4>
 
-{% for member in mailing_list.list.members %}
+{% for address, is_owner in mailing_list.get_owners_and_members() %}
 <form>
 	<div class="box">
 		<div class="columns">
 			<div class="column">
-				{{ tenca_macros.css_codify(member.address) }}
+				{{ tenca_macros.css_codify(address) }}
 			</div>
-			<div class="column is-1 has-text-right">
+			<div class="column is-3 has-text-right">
+				<button class="button icon is-primary{{ '' if is_owner else 'is-outlined' }}" title="{{ 'Demote from Owner' if is_owner else 'Promote to Owner' }}" type="submit">
+					<i class="fas fa-user{{'-cog' if is_owner else ''}} fa-xs"></i>
+				</button>
 				<button class="button icon is-danger" title="Remove User" type="submit">
 					<i class="fas fa-trash fa-xs"></i>
 				</button>

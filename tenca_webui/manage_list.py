@@ -5,4 +5,9 @@ def index(list_id):
 	if mailing_list is None or not mailing_list.is_owner(g.oidc.user_getfield('email')):
 		abort(404)
 
-	return render_template('manage_list.html', mailing_list=mailing_list)
+	list_bool_options = [
+		('notsubscribed_allowed_to_post', 'Not subscribed users are allowed to post.', mailing_list.notsubscribed_allowed_to_post),
+		('replies_addressed_to_list', 'Replies are addressed to the list per default.', True),
+	]
+
+	return render_template('manage_list.html', mailing_list=mailing_list, list_bool_options=list_bool_options)
