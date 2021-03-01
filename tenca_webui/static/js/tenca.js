@@ -37,4 +37,4 @@ function element_content_to_clipboard(element_id) {
 
   document.execCommand('copy');
   window.getSelection().removeAllRanges();
-} 
+}

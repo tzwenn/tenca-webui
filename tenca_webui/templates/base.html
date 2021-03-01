@@ -12,6 +12,7 @@
   <link rel="stylesheet" href="{{ url_for('static', filename='css/tenca.css') }}">
 
   <script src="{{ url_for('static', filename='js/tenca.js') }}"></script>
+  {% block additional_scripts %}{% endblock %}
   <script defer src="{{ url_for('static', filename='js/fontawesome.5.14.0.all.js') }}"></script>
 </head>
 <body>
