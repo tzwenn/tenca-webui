@@ -1,6 +1,7 @@
 {% extends 'base.html' %}
 
-{% block additional_scripts %}
+{% block additional_static_files %}
+<link rel="stylesheet" href="{{ url_for('static', filename='css/bulma-switch.1.0.2.min.css') }}">
 <script src="{{ url_for('static', filename='js/tenca_manage_list.js') }}"></script>
 {% endblock %}
 
@@ -24,22 +25,32 @@
 <h4 class="title is-4">Options</h4>
 <p>
 {% for name, description, value in list_bool_options %}
-<form>
-<div class="box">
 	<div class="columns">
 		<div class="column">
 			{{ description }}
 		</div>
 		<div class="column is-3 has-text-right">
-			<div class="buttons has-addons is-right">
-				<button class="button{{ ' is-success is-selected' if value else ''}}">Yes</button>
-				<button class="button{{ ' is-danger is-selected' if not value else ''}}">No</button>
-			</div>
+			<div class="field">
+				<input id="switch-{{ name }}" data-tenca-target="{{ url_for('.options', list_id=mailing_list.list_id) }}" type="checkbox" name="{{ name }}" class="switch is-rounded tenca-list-option" {{ ' checked' if value else '' }}>
+				<label for="switch-{{ name }}"></label>
+			  </div>
 		</div>
 	</div>
-</div>
-</form>
 {% endfor %}
+<div id="switch-error-modal" class="modal">
+	<div class="modal-background"></div>
+	<div class="modal-content">
+		<article class="message is-warning">
+			<div class="message-body">
+				Error applying your changes.
+				<div class="buttons is-right">
+					<button class="button is-warning modal-inner-close" aria-label="close">OK</button>
+				</div>
+			</div>
+		</article>
+	</div>
+	<button class="modal-close is-large" aria-label="close"></button>
+</div>
 </p>
 
 
@@ -47,13 +58,13 @@
 <p>
 
 {% for address, is_owner in mailing_list.get_owners_and_members() %}
-<form action="{{ url_for('manage_list.index', list_id=mailing_list.list_id) }}" method="post">
+<form action="{{ url_for('.index', list_id=mailing_list.list_id) }}" method="post">
 	<div class="box">
 		<div class="columns">
 			<div class="column">
 				{{ tenca_macros.css_codify(address) }}
 			</div>
-			<div class="column is-3 has-text-right">
+			<div class="column is-5 has-text-right">
 				<input name="member_address" type="hidden" value="{{ address }}">
 				<button name="{{ 'demote_member' if is_owner else 'promote_member' }}" class="button icon is-primary{{ '' if is_owner else 'is-outlined' }}" title="{{ 'Demote from Owner' if is_owner else 'Promote to Owner' }}" type="submit">
 					<i class="fas fa-user{{'-cog' if is_owner else ''}} fa-xs"></i>

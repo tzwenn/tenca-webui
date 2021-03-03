@@ -1,6 +1,7 @@
 from flask import Blueprint, Markup, abort, escape, flash, g, redirect, render_template, request, url_for
 
 import functools
+import json
 
 from ._macros import css_codify
 from .auth import is_current_user, oidc
@@ -35,27 +36,44 @@ def edit_member(mailing_list):
 			else:
 				flash(Markup(success_string.format(member_address)), category='success')
 
-	if is_current_user(member_address):
+	if is_current_user(member_address) and any(x in request.form for x in ['remove_member', 'demote_member']):
 		# If you demote yourself, you cannot access the admin page anymore
-		return not any(x in request.form for x in ['remove_member', 'demote_member'])
+		return redirect(url_for('dashboard.index'))
 
-	return True
 
+list_bool_options = {
+	'notsubscribed_allowed_to_post': 'Not subscribed users are allowed to post.',
+	'replies_addressed_to_list': 'Replies are addressed to the list per default.'
+}
 
 @bp.route('/<list_id>/', methods=('POST', 'GET'))
 @oidc.require_login
 @lookup_list_id
 def index(list_id, mailing_list):
 	if request.method == 'POST':
-		if not edit_member(mailing_list):
-			return redirect(url_for('dashboard.index'))
+		target = edit_member(mailing_list)
+		if target is not None:
+			return redirect(target)
 
-	list_bool_options = [
-		('notsubscribed_allowed_to_post', 'Not subscribed users are allowed to post.', mailing_list.notsubscribed_allowed_to_post),
-		('replies_addressed_to_list', 'Replies are addressed to the list per default.', True),
-	]
+	lbo = [(name, description, getattr(mailing_list, name)) for name, description in list_bool_options.items()]
 
-	return render_template('manage_list.html', mailing_list=mailing_list, list_bool_options=list_bool_options)
+	return render_template('manage_list.html', mailing_list=mailing_list, list_bool_options=lbo)
+
+@bp.route('/<list_id>/options/', methods=('POST', ))
+@oidc.require_login
+@lookup_list_id
+def options(list_id, mailing_list):
+	data = json.loads(request.data)
+	try:
+		name, value = data["name"], data["value"]
+		if name not in list_bool_options or type(value) != bool:
+			raise ValueError
+		setattr(mailing_list, name, value)
+	except:
+		abort(400)
+	else:
+		return "OK"
+
 
 @bp.route('/<list_id>/delete/', methods=('POST', ))
 @oidc.require_login
