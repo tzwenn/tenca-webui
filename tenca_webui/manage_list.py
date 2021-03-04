@@ -34,7 +34,7 @@ def edit_member(mailing_list):
 			except Exception as e:
 				flash(Markup('An Error occurred: {}'.format(escape(str(e)))), category='danger')
 			else:
-				flash(Markup(success_string.format(member_address)), category='success')
+				flash(Markup(success_string.format(css_codify(member_address))), category='success')
 
 	if is_current_user(member_address) and any(x in request.form for x in ['remove_member', 'demote_member']):
 		# If you demote yourself, you cannot access the admin page anymore

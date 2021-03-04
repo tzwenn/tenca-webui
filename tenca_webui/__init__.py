@@ -34,7 +34,7 @@ def create_app(test_config=None):
 	from .auth import oidc
 	oidc.init_app(app)
 
-	conn = tenca.connection.Connection() #db.SQLHashStorage)
+	conn = tenca.connection.Connection() # db.SQLCachedDescriptionStorage)
 
 	@app.before_request
 	def before_request():
@@ -76,14 +76,24 @@ def create_app(test_config=None):
 	from . import change_membership
 	app.register_blueprint(change_membership.bp)
 
-	@app.route('/<hash_id>/<legacy_admin_token>/')
+	@app.route('/<hash_id>/<legacy_admin_url>/')
 	@oidc.require_login
-	def legacy_manage_list(hash_id, legacy_admin_token):
-		mailing_list = change_membership.find_mailing_list(hash_id)
+	def legacy_manage_list(hash_id, legacy_admin_url):
+		entry = db.LegacyAdminURL.query.filter_by(hash_id=escape(hash_id)).first_or_404()
+		if entry.admin_url != legacy_admin_url:
+			abort(404)
 
 		# If owner: Forward
 		# If member: Promote & Forward
 		# If not member: Request to join first
-		return 'Forwarding to the management form of "%s", if "%s" is the correct token.' % (mailing_list.fqdn_listname, escape(legacy_admin_token))
+		mailing_list = change_membership.find_mailing_list(hash_id) # Becomes escaped
+		current_user_mail = oidc.user_getfield('email')
+		if mailing_list.is_member(current_user_mail):
+			if not mailing_list.is_owner(current_user_mail):
+				mailing_list.promote_to_owner(current_user_mail)
+			return redirect(url_for('manage_list.index', list_id=mailing_list.list_id))
+
+		flash('You have correctly found the admin link, but owners need also to be members of this list. Please join first.', category='warning')
+		return redirect(url_for('change_membership.index', hash_id=escape(hash_id)))
 
 	return app

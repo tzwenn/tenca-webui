@@ -2,7 +2,7 @@ from flask import current_app, g
 from flask.cli import with_appcontext
 from flask_sqlalchemy import SQLAlchemy
 
-from tenca.hash_storage import HashStorage, NotInStorageError
+from tenca.hash_storage import HashStorage, MailmanDescriptionHashStorage, NotInStorageError, TwoLevelHashStorage
 
 db = SQLAlchemy()
 
@@ -18,7 +18,14 @@ class HashEntry(db.Model):
 
 	def __repr__(self):
 		return '<HashEntry %r->%r>' % (self.hash_id, self.list_id)
+		
 
+class LegacyAdminURL(db.Model):
+	hash_id = db.Column(db.String(80), primary_key=True, nullable=False)
+	admin_url = db.Column(db.String(32), nullable=False)
+
+	def __repr__(self):
+		return '<LegacyAdminURL %r/%r>' % (self.hash_id, self.admin_url)
 
 class SQLHashStorage(HashStorage):
 
@@ -53,3 +60,8 @@ class SQLHashStorage(HashStorage):
 
 	def hashes(self):
 		return (e.hash_id for e in HashEntry.query.all())
+
+class SQLCachedDescriptionStorage(TwoLevelHashStorage):
+
+	l1_class = SQLHashStorage
+	l2_class = MailmanDescriptionHashStorage

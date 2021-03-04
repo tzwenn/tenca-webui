@@ -29,9 +29,9 @@ def confirm_action(list_id, token):
 
 	if email is not None:
 		g.conn.mark_address_verified(email)
-		flash(Markup('{} has successfully joined {}.'.format(email, css_codify(mailing_list.fqdn_listname))), category='success')
+		flash(Markup('{} has successfully joined {}.'.format(css_codify(email), css_codify(mailing_list.fqdn_listname))), category='success')
 	else:
-		flash(Markup('Ok. Thx. Bye from {}.'.format(css_codify(mailing_list.fqdn_listname))), category='success')
+		flash(Markup('You have successfully left {}.'.format(css_codify(mailing_list.fqdn_listname))), category='success')
 	
 	return render_template('action.html')
 
