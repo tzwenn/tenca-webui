@@ -37,18 +37,18 @@
 <p>
 <h4 class="title is-4">Your Memberships</h4>
 
-{% for list, is_owner in memberships %}
+{% for list_id, hash_id, is_owner in memberships %}
 <form>
 	<div class="box">
 		<div class="columns">
 			<div class="column">
-				<a class="is-family-code wrappable-list-id" href="{{ url_for('change_membership.index', hash_id=list.hash_id) }}">
-					{{ list.fqdn_listname }}
+				<a class="is-family-code wrappable-list-id" href="{{ url_for('change_membership.index', hash_id=hash_id) }}">
+					{{ g.conn.fqdn_ize(list_id) }}
 				</a>
 			</div>
 			{% if is_owner %}
 			<div class="column is-2 has-text-right">
-			<a class="tag is-black" title="Open Admin Page" href="{{ url_for('manage_list.index', list_id=list.list_id) }}">
+			<a class="tag is-black" title="Open Admin Page" href="{{ url_for('manage_list.index', list_id=list_id) }}">
 				Owner
 			</a>
 			</div>
