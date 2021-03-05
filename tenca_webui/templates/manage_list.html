@@ -1,7 +1,11 @@
 {% extends 'base.html' %}
 
 {% block additional_static_files %}
-<link rel="stylesheet" href="{{ url_for('static', filename='css/bulma-switch.1.0.2.min.css') }}">
+{% if config.BRAND_BULMA_SWITCH_URL %}
+	<link rel="stylesheet" href="{{ config.BRAND_BULMA_SWITCH_URL }}">
+{% else %}
+	<link rel="stylesheet" href="{{ url_for('static', filename='css/bulma-switch.1.0.2.min.css') }}">
+{% endif %}
 <script src="{{ url_for('static', filename='js/tenca_manage_list.js') }}"></script>
 {% endblock %}
 
