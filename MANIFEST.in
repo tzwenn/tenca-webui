@@ -1,0 +1,3 @@
+graft tenca_webui/static
+graft tenca_webui/templates
+global-exclude *.pyc
