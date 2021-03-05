@@ -60,7 +60,7 @@
 <h4 class="title is-4">Members</h4>
 <p>
 
-{% for address, is_owner in mailing_list.get_owners_and_members() %}
+{% for address, (is_owner, is_blocked) in mailing_list.get_roster() %}
 <form action="{{ url_for('.index', list_id=mailing_list.list_id) }}" method="post">
 	{{ delete_list_form.csrf_token() }}
 	<div class="box">
@@ -72,6 +72,9 @@
 				<input name="member_address" type="hidden" value="{{ address }}">
 				<button name="{{ 'demote_member' if is_owner else 'promote_member' }}" class="button icon is-primary{{ '' if is_owner else 'is-outlined' }}" title="{{ 'Demote from Owner' if is_owner else 'Promote to Owner' }}" type="submit">
 					<i class="fas fa-user{{'-cog' if is_owner else ''}} fa-xs"></i>
+				</button>
+				<button name="{{ 'unblock_member' if is_blocked else 'block_member' }}" class="button icon is-primary{{ '' if not is_blocked else 'is-outlined' }}" title="{{ 'Unblock Member' if is_blocked else 'Block Member' }}" type="submit">
+					<i class="fas fa-comment{{'-slash' if is_blocked else ''}} fa-xs"></i>
 				</button>
 				<button name="remove_member" class="button icon is-danger" title="Remove Member" type="submit">
 					<i class="fas fa-trash fa-xs"></i>

@@ -45,6 +45,8 @@ def edit_member(mailing_list):
 		('remove_member', mailing_list.remove_member_silently, 'Removed {}'),
 		('promote_member', mailing_list.promote_to_owner, 'Promoted {}'),
 		('demote_member', mailing_list.demote_from_owner, 'Demoted {}'),
+		('block_member', lambda a: mailing_list.set_blocked(a, True), 'Blocked {}'),
+		('unblock_member', lambda a: mailing_list.set_blocked(a, False), 'Unblocked {}'),
 	]
 
 	had_error = False
