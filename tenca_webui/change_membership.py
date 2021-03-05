@@ -1,5 +1,6 @@
 from flask import Blueprint, Markup, abort, current_app, flash, g, render_template, request
 from markupsafe import escape
+from flask_wtf import FlaskForm
 from wtforms import Form, validators
 from wtforms.fields.html5 import EmailField
 
@@ -11,7 +12,7 @@ def find_mailing_list(unescaped_hash_id):
 		abort(404)
 	return mailing_list
 
-class SubscriptionForm(Form):
+class SubscriptionForm(FlaskForm):
 	email = EmailField('E-Mail Address', [validators.Email()])
 
 @bp.route('/<hash_id>/', methods=('GET', 'POST'))

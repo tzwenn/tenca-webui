@@ -36,6 +36,10 @@ def create_app(test_config=None):
 
 	conn = tenca.connection.Connection() # db.SQLCachedDescriptionStorage)
 
+
+	from flask_wtf.csrf import CSRFProtect
+	csrf = CSRFProtect(app)
+
 	@app.before_request
 	def before_request():
 		g.oidc = oidc

@@ -9,9 +9,12 @@
 <p>
 <h4 class="title is-4 ">Create New List</h4>
 <form method="post">
+	{{ form.csrf_token }}
 	<div class="field has-addons">
 		<div class="control has-icons-left is-expanded">
-			<input class="input" type="text" name="listname" placeholder="my-fancy-listname">
+			{{ form.listname(class='input' + (' is-danger' if form.listname.errors else ''), placeholder="my-fancy-listname",
+				value=((form.listname.errors and form.listname.data|e) or ''))
+			}}
 			<span class="icon is-small is-left">
 				<i class="fas fa-mail-bulk"></i>
 			</span>
