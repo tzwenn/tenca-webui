@@ -46,18 +46,23 @@ def edit_member(mailing_list):
 		('promote_member', mailing_list.promote_to_owner, 'Promoted {}'),
 		('demote_member', mailing_list.demote_from_owner, 'Demoted {}'),
 	]
+
+	had_error = False
 	for (name, func, success_string) in operations:
 		if name in request.form:
 			try:
 				func(member_address)
 			except Exception as e:
 				flash(Markup('An Error occurred: {}'.format(escape(str(e)))), category='danger')
+				had_error = True
 			else:
 				flash(Markup(success_string.format(css_codify(member_address))), category='success')
 
-	if is_current_user(member_address) and any(x in request.form for x in ['remove_member', 'demote_member']):
+	if not had_error and is_current_user(member_address) and any(x in request.form for x in ['remove_member', 'demote_member']):
 		# If you demote yourself, you cannot access the admin page anymore
 		return redirect(url_for('dashboard.index'))
+	
+	return None
 
 
 list_bool_options = {
@@ -76,7 +81,7 @@ def index(list_id, mailing_list):
 	if request.method == 'POST':
 		target = edit_member(mailing_list)
 		if target is not None:
-			return redirect(target)
+			return target
 
 	lbo = [(name, description, getattr(mailing_list, name)) for name, description in list_bool_options.items()]
 
