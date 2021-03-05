@@ -1,4 +1,7 @@
 from flask import Blueprint, Markup, abort, escape, flash, g, redirect, render_template, request, session, url_for
+from flask_wtf import FlaskForm
+from wtforms import Form, StringField
+from wtforms.validators import DataRequired
 
 import functools
 import json
@@ -62,10 +65,14 @@ list_bool_options = {
 	'replies_addressed_to_list': 'Replies are addressed to the list per default.'
 }
 
+class DeleteListForm(FlaskForm):
+	confirmation_phrase = StringField('Confirmation Phrase', [DataRequired()])
+
 @bp.route('/<list_id>/', methods=('POST', 'GET'))
 @oidc.require_login
 @lookup_list_id
 def index(list_id, mailing_list):
+	delete_list_form = DeleteListForm(request.form)
 	if request.method == 'POST':
 		target = edit_member(mailing_list)
 		if target is not None:
@@ -73,7 +80,7 @@ def index(list_id, mailing_list):
 
 	lbo = [(name, description, getattr(mailing_list, name)) for name, description in list_bool_options.items()]
 
-	return render_template('manage_list.html', mailing_list=mailing_list, list_bool_options=lbo)
+	return render_template('manage_list.html', mailing_list=mailing_list, list_bool_options=lbo, delete_list_form=delete_list_form)
 
 @bp.route('/<list_id>/options/', methods=('POST', ))
 @oidc.require_login
@@ -90,13 +97,14 @@ def options(list_id, mailing_list):
 	else:
 		return "OK"
 
-
 @bp.route('/<list_id>/delete/', methods=('POST', ))
 @oidc.require_login
 @lookup_list_id
 def delete(list_id, mailing_list):
-	if "delete_submit" in request.form and "confirmation_phrase" in request.form:
-		confirmation_phrase = escape(request.form["confirmation_phrase"])
+	delete_list_form = DeleteListForm(request.form)
+
+	if delete_list_form.validate():
+		confirmation_phrase = delete_list_form.confirmation_phrase.data
 		if confirmation_phrase != (mailing_list.fqdn_listname).upper():
 			flash("Wrong confirmation phrase. Try again.", category="danger")
 		else:

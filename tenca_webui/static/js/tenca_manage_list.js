@@ -68,6 +68,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
 				req.open("POST", $switch.dataset.tencaTarget);
 				req.setRequestHeader("Content-Type", "application/json;charset=UTF-8");
+				req.setRequestHeader("X-CSRFToken", csrf_token);
 				req.send(JSON.stringify({name: $switch.name, value: $switch.checked}));
 			});
 		});
