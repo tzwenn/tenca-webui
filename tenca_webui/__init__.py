@@ -1,7 +1,7 @@
 import urllib.error
 import os
 
-from flask import Flask, abort, flash, g, redirect, render_template, request, url_for
+from flask import Flask, abort, flash, g, redirect, render_template, request, session, url_for
 from markupsafe import escape
 
 import tenca.connection
@@ -79,21 +79,17 @@ def create_app(test_config=None):
 	@app.route('/<hash_id>/<legacy_admin_url>/')
 	@oidc.require_login
 	def legacy_manage_list(hash_id, legacy_admin_url):
-		entry = db.LegacyAdminURL.query.filter_by(hash_id=escape(hash_id)).first_or_404()
-		if entry.admin_url != legacy_admin_url:
+		if not manage_list.legacy_admin_url_valid(hash_id, legacy_admin_url):
 			abort(404)
 
-		# If owner: Forward
-		# If member: Promote & Forward
-		# If not member: Request to join first
 		mailing_list = change_membership.find_mailing_list(hash_id) # Becomes escaped
 		current_user_mail = oidc.user_getfield('email')
 		if mailing_list.is_member(current_user_mail):
 			if not mailing_list.is_owner(current_user_mail):
 				mailing_list.promote_to_owner(current_user_mail)
-			return redirect(url_for('manage_list.index', list_id=mailing_list.list_id))
+		else:
+			session[manage_list.LEGACY_MANAGE_LIST_COOKIE_NAME] = '{}/{}'.format(hash_id, legacy_admin_url)
 
-		flash('You have correctly found the admin link, but owners need also to be members of this list. Please join first.', category='warning')
-		return redirect(url_for('change_membership.index', hash_id=escape(hash_id)))
+		return redirect(url_for('manage_list.index', list_id=mailing_list.list_id))
 
 	return app

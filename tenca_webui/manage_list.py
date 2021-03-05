@@ -1,18 +1,34 @@
-from flask import Blueprint, Markup, abort, escape, flash, g, redirect, render_template, request, url_for
+from flask import Blueprint, Markup, abort, escape, flash, g, redirect, render_template, request, session, url_for
 
 import functools
 import json
 
 from ._macros import css_codify
 from .auth import is_current_user, oidc
+from . import db
 
 bp = Blueprint('manage_list', __name__, url_prefix='/manage')
+
+LEGACY_MANAGE_LIST_COOKIE_NAME = 'tenca_legacy_manage_list'
+
+def legacy_admin_url_valid(hash_id, legacy_admin_url):
+	entry = db.LegacyAdminURL.query.filter_by(hash_id=escape(hash_id)).first()
+	return entry is not None and entry.admin_url == escape(legacy_admin_url)
 
 def lookup_list_id(view):
 	@functools.wraps(view)
 	def wrapped_view(list_id, **kwargs):
 		mailing_list = g.conn.get_list(escape(list_id))
-		if mailing_list is None or not mailing_list.is_owner(oidc.user_getfield('email')):
+		if mailing_list is None:
+			abort(404)
+
+		if LEGACY_MANAGE_LIST_COOKIE_NAME in session:
+			hash_id, _, legacy_admin_url = session[LEGACY_MANAGE_LIST_COOKIE_NAME].partition('/')
+			is_legacy_valid = mailing_list.hash_id == hash_id and legacy_admin_url_valid(hash_id, legacy_admin_url)
+		else:
+			is_legacy_valid = False
+
+		if not (is_legacy_valid or mailing_list.is_owner(oidc.user_getfield('email'))):
 			abort(404)
 		return view(list_id, mailing_list=mailing_list, **kwargs)
 	return wrapped_view
