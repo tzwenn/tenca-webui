@@ -36,7 +36,10 @@ def lookup_list_id(view):
 		return view(list_id, mailing_list=mailing_list, **kwargs)
 	return wrapped_view
 
-def edit_member(mailing_list):
+@bp.route('/<list_id>/edit-member/', methods=('POST', ))
+@oidc.require_login
+@lookup_list_id
+def edit_member(list_id, mailing_list):
 	member_address = request.form.get('member_address')
 	if not member_address:
 		return True
@@ -64,7 +67,7 @@ def edit_member(mailing_list):
 		# If you demote yourself, you cannot access the admin page anymore
 		return redirect(url_for('dashboard.index'))
 	
-	return None
+	return redirect(url_for('.index', list_id=list_id))
 
 
 list_bool_options = {
@@ -75,16 +78,11 @@ list_bool_options = {
 class DeleteListForm(FlaskForm):
 	confirmation_phrase = StringField('Confirmation Phrase', [DataRequired()])
 
-@bp.route('/<list_id>/', methods=('POST', 'GET'))
+@bp.route('/<list_id>/')
 @oidc.require_login
 @lookup_list_id
 def index(list_id, mailing_list):
 	delete_list_form = DeleteListForm(request.form)
-	if request.method == 'POST':
-		target = edit_member(mailing_list)
-		if target is not None:
-			return target
-
 	lbo = [(name, description, getattr(mailing_list, name)) for name, description in list_bool_options.items()]
 
 	return render_template('manage_list.html', mailing_list=mailing_list, list_bool_options=lbo, delete_list_form=delete_list_form)
