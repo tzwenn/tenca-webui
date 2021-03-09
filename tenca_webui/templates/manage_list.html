@@ -66,7 +66,7 @@
 
 {% for address, (is_owner, is_blocked) in mailing_list.get_roster() %}
 <form action="{{ url_for('.index', list_id=mailing_list.list_id) }}" method="post">
-	{{ delete_list_form.csrf_token() }}
+	{{ delete_list_form.csrf_token }}
 	<div class="box">
 		<div class="columns">
 			<div class="column">
@@ -94,7 +94,7 @@
 <p>
 
 <form action="{{ url_for('.delete', list_id=mailing_list.list_id) }}" method="post">
-	{{ delete_list_form.csrf_token() }}
+	{{ delete_list_form.csrf_token }}
 	<p>This permanently deletes all memberships and settings.
 	Please, type the list's address in all-caps ({{ tenca_macros.css_codify(mailing_list.fqdn_listname, other_classes="is-uppercase", other_attrs='id=confirmation_reference') }}) to confirm:</p>
 
