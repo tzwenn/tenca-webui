@@ -75,6 +75,7 @@ def create_app(test_config=None):
 	@app.route('/logout/')
 	def logout():
 		oidc.logout()
+		session.clear()
 		return redirect(url_for('index'))
 
 	from . import change_membership
